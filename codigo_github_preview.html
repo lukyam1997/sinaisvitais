@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualização do Código.gs</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #7c3aed;
+        --background: #f3f4f6;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --muted: #475569;
+        --border: #e2e8f0;
+        --success: #10b981;
+        --danger: #ef4444;
+        --code-bg: #0f172a;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08));
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .container {
+        width: min(1100px, 100%);
+        background: var(--surface);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 30px 60px -20px rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(37, 99, 235, 0.1);
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+        color: var(--primary-dark);
+    }
+
+    header p {
+        margin: 4px 0 0 0;
+        color: var(--muted);
+        max-width: 620px;
+    }
+
+    .badge {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        box-shadow: 0 12px 30px -12px rgba(37, 99, 235, 0.6);
+    }
+
+    .grid {
+        margin-top: 32px;
+        display: grid;
+        gap: 24px;
+    }
+
+    @media (min-width: 900px) {
+        .grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 18px 30px -20px rgba(15, 23, 42, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), transparent 60%);
+        pointer-events: none;
+    }
+
+    .card h2 {
+        margin: 0 0 12px 0;
+        font-size: 1.2rem;
+        color: var(--primary-dark);
+    }
+
+    .card p {
+        margin: 0 0 18px 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary-dark);
+        margin-bottom: 12px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px -15px rgba(37, 99, 235, 0.6);
+        background: rgba(37, 99, 235, 0.12);
+    }
+
+    .action-btn span.icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3));
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+    }
+
+    .output-card {
+        grid-column: 1 / -1;
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 18px 40px -24px rgba(15, 23, 42, 0.8);
+    }
+
+    .output-card h2 {
+        color: #93c5fd;
+        margin-bottom: 16px;
+    }
+
+    pre {
+        margin: 0;
+        max-height: 360px;
+        overflow: auto;
+        background: rgba(15, 23, 42, 0.6);
+        padding: 20px;
+        border-radius: 14px;
+        font-family: 'Fira Code', 'Source Code Pro', monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #e2e8f0;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+    }
+
+    footer {
+        margin-top: 32px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--primary-dark);
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 6px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div>
+            <h1>Simulador do Código.gs</h1>
+            <p>Explore as principais funções de backend utilizadas pelo aplicativo Google Apps Script original. Cada ação executa uma versão mock do serviço em memória, permitindo visualizar a resposta diretamente neste preview HTML.</p>
+        </div>
+        <div class="badge">Ambiente Demo - 100% Front-end</div>
+    </header>
+
+    <div class="grid">
+        <section class="card">
+            <h2>Autenticação</h2>
+            <p>Fluxos relacionados a login, recuperação de senha e criação de usuários.</p>
+            <button class="action-btn" data-action="loginAdmin"><span class="icon">🔐</span>Login (admin/admin)</button>
+            <button class="action-btn" data-action="loginMedico"><span class="icon">🩺</span>Login (1001/med123)</button>
+            <button class="action-btn" data-action="recuperarSenha"><span class="icon">📬</span>Recuperar senha (matrícula 2001)</button>
+            <button class="action-btn" data-action="cadastrarUsuario"><span class="icon">➕</span>Cadastrar novo usuário</button>
+        </section>
+
+        <section class="card">
+            <h2>Cadastros e Listagens</h2>
+            <p>Operações que retornam coleções gerais para compor os dashboards.</p>
+            <button class="action-btn" data-action="listarUsuarios"><span class="icon">👥</span>Listar usuários</button>
+            <button class="action-btn" data-action="listarSetores"><span class="icon">🏥</span>Listar setores</button>
+            <button class="action-btn" data-action="estatisticas"><span class="icon">📊</span>Resumo estatístico</button>
+            <button class="action-btn" data-action="registrosHoje"><span class="icon">🗓️</span>Registros do dia</button>
+        </section>
+
+        <section class="card">
+            <h2>Pacientes e Relatórios</h2>
+            <p>Funções para manipular prontuários e gerar relatórios consolidados.</p>
+            <button class="action-btn" data-action="buscarPaciente"><span class="icon">🔍</span>Buscar paciente #12345</button>
+            <button class="action-btn" data-action="novoRegistro"><span class="icon">📄</span>Novo registro clínico</button>
+            <button class="action-btn" data-action="relatorio"><span class="icon">🧾</span>Relatório (últimos 7 dias)</button>
+            <button class="action-btn" data-action="dadosTeste"><span class="icon">🧪</span>Gerar dados de teste</button>
+        </section>
+
+        <section class="card output-card">
+            <h2>Retorno da Função</h2>
+            <pre id="output">Clique em um dos botões acima para executar a função mock correspondente.</pre>
+        </section>
+    </div>
+
+    <footer>
+        <div>
+            <span class="pill">MockData</span>
+            <span class="pill">google.script.run</span>
+            <span class="pill">Apps Script Preview</span>
+        </div>
+        <p>O objetivo deste arquivo é demonstrar como o backend do Apps Script pode ser visualizado e testado sem dependências externas.</p>
+    </footer>
+</div>
+
+<script>
+// Ambiente mock compartilhado com o preview principal
+let currentUser = null;
+let debounceTimer = null;
+
+const mockData = (() => {
+    const hoje = new Date();
+    const ontem = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const doisDiasAtras = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+    const formatISO = (date) => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+
+    return {
+        setores: [
+            { id: 'S1', descricao: 'Administração', setor: 'Administração', nivelAcesso: 0 },
+            { id: 'S2', descricao: 'Enfermagem', setor: 'Enfermagem', nivelAcesso: 1 },
+            { id: 'S3', descricao: 'Médico', setor: 'Médico', nivelAcesso: 2 }
+        ],
+        usuarios: [
+            { nome: 'Administrador', matricula: 'admin', senha: 'admin', setor: 'Administração', tipo: 'ADM', status: 'Ativo' },
+            { nome: 'Dra. Ana Souza', matricula: '1001', senha: 'med123', setor: 'Médico', tipo: 'MEDICO', status: 'Ativo' },
+            { nome: 'Téc. Bruno Lima', matricula: '2001', senha: 'tec123', setor: 'Enfermagem', tipo: 'TECNICO', status: 'Ativo' }
+        ],
+        pacientes: [
+            {
+                prontuario: '12345',
+                nome: 'Maria Silva',
+                dataNascimento: '1990-02-14',
+                historico: [
+                    {
+                        dataRegistro: formatISO(hoje),
+                        usuarioRegistro: 'Administrador',
+                        peso: 68,
+                        altura: 165,
+                        pressaoArterial: '120/80',
+                        temperatura: 36.7,
+                        saturacao: 98,
+                        glicemia: 92,
+                        observacoes: 'Paciente estável, retornará em 7 dias.'
+                    },
+                    {
+                        dataRegistro: formatISO(ontem),
+                        usuarioRegistro: 'Téc. Bruno Lima',
+                        peso: 69,
+                        altura: 165,
+                        pressaoArterial: '122/82',
+                        temperatura: 37.1,
+                        saturacao: 97,
+                        glicemia: 95,
+                        observacoes: 'Relatou leve dor de cabeça.'
+                    }
+                ]
+            },
+            {
+                prontuario: '67890',
+                nome: 'Carlos Pereira',
+                dataNascimento: '1982-11-05',
+                historico: [
+                    {
+                        dataRegistro: formatISO(doisDiasAtras),
+                        usuarioRegistro: 'Dra. Ana Souza',
+                        peso: 82,
+                        altura: 175,
+                        pressaoArterial: '130/85',
+                        temperatura: 36.4,
+                        saturacao: 99,
+                        glicemia: 102,
+                        observacoes: 'Solicitado exame complementar.'
+                    }
+                ]
+            }
+        ]
+    };
+})();
+
+const mockUtils = {
+    delay(callback, delay = 300) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                try {
+                    resolve(callback());
+                } catch (error) {
+                    reject(error);
+                }
+            }, delay);
+        });
+    },
+    clone(data) {
+        return JSON.parse(JSON.stringify(data));
+    },
+    generateId(prefix = 'ID') {
+        return `${prefix}${Math.random().toString(36).slice(2, 8)}`;
+    },
+    mapSetorToTipo(setorNome) {
+        const setor = mockData.setores.find(s => s.setor === setorNome);
+        if (!setor) return 'TECNICO';
+        if (setor.nivelAcesso === 0) return 'ADM';
+        if (setor.nivelAcesso === 2) return 'MEDICO';
+        return 'TECNICO';
+    },
+    isSameDay(dateA, dateB) {
+        return dateA.getFullYear() === dateB.getFullYear() &&
+            dateA.getMonth() === dateB.getMonth() &&
+            dateA.getDate() === dateB.getDate();
+    }
+};
+
+const mockServer = {
+    fazerLogin(matricula, senha) {
+        return mockUtils.delay(() => {
+            const usuario = mockData.usuarios.find(u => u.matricula === matricula && u.senha === senha);
+            if (!usuario) {
+                return { success: false, message: 'Credenciais inválidas ou usuário não encontrado.' };
+            }
+            if (usuario.status !== 'Ativo') {
+                return { success: false, message: 'Usuário inativo. Contate o administrador.' };
+            }
+            return {
+                success: true,
+                user: {
+                    nome: usuario.nome,
+                    matricula: usuario.matricula,
+                    setor: usuario.setor,
+                    tipo: usuario.tipo
+                }
+            };
+        });
+    },
+    recuperarSenha(matricula) {
+        return mockUtils.delay(() => {
+            const usuario = mockData.usuarios.find(u => u.matricula === matricula);
+            if (!usuario) {
+                throw new Error('Matrícula não localizada.');
+            }
+            return { message: `Instruções de recuperação enviadas para ${usuario.nome}. (Simulação)` };
+        });
+    },
+    cadastrarUsuario(nome, matricula, setor, senha) {
+        return mockUtils.delay(() => {
+            if (mockData.usuarios.some(u => u.matricula === matricula)) {
+                throw new Error('Matrícula já cadastrada.');
+            }
+            const tipo = mockUtils.mapSetorToTipo(setor);
+            mockData.usuarios.push({ nome, matricula, setor, senha, tipo, status: 'Ativo' });
+            return { message: 'Usuário cadastrado com sucesso! (Simulação)' };
+        });
+    },
+    adicionarSetor(descricao, nivelAcesso) {
+        return mockUtils.delay(() => {
+            if (mockData.setores.some(s => s.setor.toLowerCase() === descricao.toLowerCase())) {
+                throw new Error('Setor já existente.');
+            }
+            const novoSetor = {
+                id: mockUtils.generateId('S'),
+                descricao,
+                setor: descricao,
+                nivelAcesso: Number(nivelAcesso) || 0
+            };
+            mockData.setores.push(novoSetor);
+            return { message: 'Setor cadastrado com sucesso! (Simulação)' };
+        });
+    },
+    registrarDadosPaciente(dados) {
+        return mockUtils.delay(() => {
+            const prontuario = dados.prontuario;
+            if (!prontuario) {
+                throw new Error('Prontuário obrigatório.');
+            }
+            let paciente = mockData.pacientes.find(p => p.prontuario === prontuario);
+            if (!paciente) {
+                paciente = {
+                    prontuario,
+                    nome: dados.nomeCompleto,
+                    dataNascimento: dados.dataNascimento,
+                    historico: []
+                };
+                mockData.pacientes.push(paciente);
+            }
+            paciente.nome = dados.nomeCompleto || paciente.nome;
+            paciente.dataNascimento = dados.dataNascimento || paciente.dataNascimento;
+
+            const novoRegistro = {
+                dataRegistro: new Date().toISOString(),
+                usuarioRegistro: dados.usuarioRegistro || 'Usuário Demo',
+                peso: Number(dados.peso) || null,
+                altura: Number(dados.altura) || null,
+                pressaoArterial: dados.pressaoArterial || null,
+                temperatura: Number(dados.temperatura) || null,
+                saturacao: dados.saturacao ? Number(dados.saturacao) : null,
+                glicemia: dados.glicemia ? Number(dados.glicemia) : null,
+                observacoes: dados.observacoes || ''
+            };
+
+            paciente.historico.unshift(novoRegistro);
+            return { message: 'Dados do paciente registrados com sucesso! (Simulação)' };
+        });
+    },
+    buscarPaciente(prontuario) {
+        return mockUtils.delay(() => {
+            const paciente = mockData.pacientes.find(p => p.prontuario === prontuario);
+            if (!paciente) {
+                return [];
+            }
+            return paciente.historico
+                .slice()
+                .sort((a, b) => new Date(b.dataRegistro) - new Date(a.dataRegistro))
+                .map(registro => ({
+                    nome: paciente.nome,
+                    prontuario: paciente.prontuario,
+                    dataNascimento: paciente.dataNascimento,
+                    dataRegistro: registro.dataRegistro,
+                    usuarioRegistro: registro.usuarioRegistro,
+                    peso: registro.peso,
+                    altura: registro.altura,
+                    pressaoArterial: registro.pressaoArterial,
+                    temperatura: registro.temperatura,
+                    saturacao: registro.saturacao,
+                    glicemia: registro.glicemia,
+                    observacoes: registro.observacoes
+                }));
+        });
+    },
+    obterSetores() {
+        return mockUtils.delay(() => mockData.setores.map(s => s.setor));
+    },
+    obterSetoresComDetalhes() {
+        return mockUtils.delay(() => mockUtils.clone(mockData.setores));
+    },
+    obterUsuarios() {
+        return mockUtils.delay(() => mockData.usuarios.map(u => ({
+            nome: u.nome,
+            matricula: u.matricula,
+            setor: u.setor,
+            status: u.status
+        })));
+    },
+    obterEstatisticas() {
+        return mockUtils.delay(() => {
+            const todosRegistros = mockData.pacientes.flatMap(p => p.historico);
+            const totalUsuarios = mockData.usuarios.length;
+            const totalRegistros = todosRegistros.length;
+            const hoje = new Date();
+            const registrosHoje = todosRegistros.filter(r => mockUtils.isSameDay(new Date(r.dataRegistro), hoje)).length;
+            const temperaturas = todosRegistros.map(r => Number(r.temperatura)).filter(t => !isNaN(t));
+            const mediaTemperatura = temperaturas.length
+                ? temperaturas.reduce((sum, temp) => sum + temp, 0) / temperaturas.length
+                : 0;
+            return {
+                totalUsuarios,
+                totalRegistros,
+                registrosHoje,
+                mediaTemperatura
+            };
+        });
+    },
+    obterRegistrosHoje() {
+        return mockUtils.delay(() => {
+            const hoje = new Date();
+            const registros = [];
+            mockData.pacientes.forEach(paciente => {
+                paciente.historico.forEach(registro => {
+                    if (mockUtils.isSameDay(new Date(registro.dataRegistro), hoje)) {
+                        registros.push({
+                            nome: paciente.nome,
+                            prontuario: paciente.prontuario,
+                            dataRegistro: registro.dataRegistro,
+                            temperatura: registro.temperatura
+                        });
+                    }
+                });
+            });
+            return registros.sort((a, b) => new Date(b.dataRegistro) - new Date(a.dataRegistro));
+        });
+    },
+    gerarRelatorio(dataInicio, dataFim) {
+        return mockUtils.delay(() => {
+            if (!dataInicio || !dataFim) {
+                throw new Error('Período inválido.');
+            }
+            const inicio = new Date(`${dataInicio}T00:00:00`);
+            const fim = new Date(`${dataFim}T23:59:59`);
+            const registros = mockData.pacientes.flatMap(paciente =>
+                paciente.historico.map(registro => ({
+                    ...registro,
+                    paciente: paciente.nome
+                }))
+            ).filter(registro => {
+                const data = new Date(registro.dataRegistro);
+                return data >= inicio && data <= fim;
+            });
+
+            const temperaturas = registros.map(r => Number(r.temperatura)).filter(t => !isNaN(t));
+            const mediaTemp = temperaturas.length
+                ? temperaturas.reduce((sum, temp) => sum + temp, 0) / temperaturas.length
+                : 0;
+            const usuariosUnicos = new Set(registros.map(r => r.usuarioRegistro)).size;
+
+            return {
+                data: new Date().toLocaleDateString('pt-BR'),
+                total: registros.length,
+                usuariosUnicos,
+                mediaTemp
+            };
+        });
+    },
+    editarUsuario(matricula, dados) {
+        return mockUtils.delay(() => {
+            const usuario = mockData.usuarios.find(u => u.matricula === matricula);
+            if (!usuario) {
+                throw new Error('Usuário não encontrado.');
+            }
+            Object.assign(usuario, dados);
+            return { message: 'Usuário atualizado! (Simulação)' };
+        });
+    },
+    deletarUsuario(matricula) {
+        return mockUtils.delay(() => {
+            const usuario = mockData.usuarios.find(u => u.matricula === matricula);
+            if (!usuario) {
+                throw new Error('Usuário não encontrado.');
+            }
+            usuario.status = 'Inativo';
+            return { message: 'Usuário inativado! (Simulação)' };
+        });
+    },
+    editarSetor(id, dados) {
+        return mockUtils.delay(() => {
+            const setor = mockData.setores.find(s => s.id === id);
+            if (!setor) {
+                throw new Error('Setor não encontrado.');
+            }
+            setor.descricao = dados.setor || setor.descricao;
+            setor.setor = dados.setor || setor.setor;
+            return { message: 'Setor atualizado! (Simulação)' };
+        });
+    },
+    deletarSetor(id) {
+        return mockUtils.delay(() => {
+            const indice = mockData.setores.findIndex(s => s.id === id);
+            if (indice === -1) {
+                throw new Error('Setor não encontrado.');
+            }
+            const [removido] = mockData.setores.splice(indice, 1);
+            mockData.usuarios.forEach(usuario => {
+                if (usuario.setor === removido.setor) {
+                    usuario.setor = 'Sem Setor';
+                }
+            });
+            return { message: 'Setor removido! (Simulação)' };
+        });
+    },
+    debugProntuarios() {
+        return mockUtils.delay(() => mockData.pacientes.map(p => p.prontuario));
+    },
+    criarDadosTeste() {
+        return mockUtils.delay(() => {
+            const novo = {
+                prontuario: mockUtils.generateId('P'),
+                nome: 'Paciente de Teste',
+                dataNascimento: '2001-01-01',
+                historico: [
+                    {
+                        dataRegistro: new Date().toISOString(),
+                        usuarioRegistro: 'Administrador',
+                        peso: 70,
+                        altura: 170,
+                        pressaoArterial: '118/79',
+                        temperatura: 36.5,
+                        saturacao: 99,
+                        glicemia: 90,
+                        observacoes: 'Registro gerado automaticamente.'
+                    }
+                ]
+            };
+            mockData.pacientes.push(novo);
+            return '✅ Dados de teste criados! Consulte os relatórios para visualizar.';
+        });
+    }
+};
+
+if (!window.google) {
+    window.google = {};
+}
+if (!window.google.script) {
+    window.google.script = {};
+}
+
+Object.defineProperty(window.google.script, 'run', {
+    configurable: true,
+    get() {
+        const handlers = {
+            success: () => {},
+            failure: (error) => console.error(error)
+        };
+
+        let runnerProxy;
+        runnerProxy = new Proxy({}, {
+            get(_, prop) {
+                if (prop === 'withSuccessHandler') {
+                    return (callback) => {
+                        handlers.success = typeof callback === 'function' ? callback : handlers.success;
+                        return runnerProxy;
+                    };
+                }
+                if (prop === 'withFailureHandler') {
+                    return (callback) => {
+                        handlers.failure = typeof callback === 'function' ? callback : handlers.failure;
+                        return runnerProxy;
+                    };
+                }
+                return (...args) => {
+                    const metodo = mockServer[prop];
+                    if (!metodo) {
+                        handlers.failure(new Error(`Função mock não implementada: ${prop}`));
+                        return runnerProxy;
+                    }
+                    metodo(...args)
+                        .then(result => handlers.success(result))
+                        .catch(error => handlers.failure(error));
+                    return runnerProxy;
+                };
+            }
+        });
+
+        return runnerProxy;
+    }
+});
+
+window.__mockData = mockData;
+
+const output = document.getElementById('output');
+
+const formatOutput = (value) => {
+    if (value === undefined) {
+        return 'undefined';
+    }
+    if (typeof value === 'string') {
+        return value;
+    }
+    return JSON.stringify(value, null, 2);
+};
+
+const actions = {
+    loginAdmin: () => mockServer.fazerLogin('admin', 'admin'),
+    loginMedico: () => mockServer.fazerLogin('1001', 'med123'),
+    recuperarSenha: () => mockServer.recuperarSenha('2001'),
+    cadastrarUsuario: () => mockServer.cadastrarUsuario('Usuário Front-end', mockUtils.generateId('U'), 'Enfermagem', '123456'),
+    listarUsuarios: () => mockServer.obterUsuarios(),
+    listarSetores: () => mockServer.obterSetoresComDetalhes(),
+    estatisticas: () => mockServer.obterEstatisticas(),
+    registrosHoje: () => mockServer.obterRegistrosHoje(),
+    buscarPaciente: () => mockServer.buscarPaciente('12345'),
+    novoRegistro: () => mockServer.registrarDadosPaciente({
+        nomeCompleto: 'Maria Silva',
+        prontuario: '12345',
+        dataNascimento: '1990-02-14',
+        peso: 70,
+        altura: 165,
+        pressaoArterial: '118/80',
+        temperatura: 36.5,
+        saturacao: 99,
+        glicemia: 88,
+        observacoes: 'Registro criado via preview HTML',
+        usuarioRegistro: 'Preview HTML'
+    }),
+    relatorio: () => {
+        const fim = new Date();
+        const inicio = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const format = (date) => date.toISOString().split('T')[0];
+        return mockServer.gerarRelatorio(format(inicio), format(fim));
+    },
+    dadosTeste: () => mockServer.criarDadosTeste()
+};
+
+function runAction(actionKey) {
+    const action = actions[actionKey];
+    if (!action) {
+        output.textContent = `Ação não mapeada: ${actionKey}`;
+        return;
+    }
+    output.textContent = 'Processando...';
+    action()
+        .then(result => {
+            output.textContent = formatOutput(result);
+        })
+        .catch(error => {
+            output.textContent = `Erro: ${error.message}`;
+        });
+}
+
+Array.from(document.querySelectorAll('.action-btn')).forEach(button => {
+    button.addEventListener('click', () => runAction(button.dataset.action));
+});
+
+output.textContent = 'Pronto! Escolha uma ação para visualizar as respostas simuladas do Código.gs.';
+</script>
+</body>
+</html>
